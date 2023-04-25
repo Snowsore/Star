@@ -1,0 +1,143 @@
+<head>
+
+	<style>
+	
+		.button-row {
+			display: none;
+		}
+		
+		.garden {
+			display: grid;
+			grid-template-columns: repeat(10, 1fr);
+		}
+		
+		.flower {
+			display: grid;
+			place-items: center;
+			margin: 5px;
+			padding: 3px;
+			border: 4px solid #358d2e;
+			background: #4fe140;
+			border-radius: 10px;
+			color: white;
+			font-size: 40px;
+			font-family: monospace;
+		}
+		
+		.counter {
+			font-weight: bold;
+			font-size: 80px;
+			margin: 10px;
+			color: #4fe140;
+			text-shadow: 4px 4px #358d2e;
+		}
+		
+		html {
+			background: #c7f39f;
+		}
+	
+	</style>
+
+</head>
+<body>
+
+	<div class="button-row">
+		<button class="sub-button">-</button>
+		<input class="counter-input" value=0 />
+		<button class="add-button">+</button>
+	</div>
+	<div class="counter">0</div>
+	<div class="garden"></div>
+		
+</body>
+<script>
+
+	const cookieManager = {
+		set(name, value) {
+			var Days = 30;
+			var exp = new Date();
+			exp.setTime(exp.getTime() + Days*24*60*60*1000);
+			document.cookie = name + "="+ escape (JSON.stringify(value)) + ";expires=" + exp.toGMTString();
+		},
+		get(name) {
+			var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+			if(arr=document.cookie.match(reg))
+				return JSON.parse(unescape(arr[2]));
+			else
+				return null;
+		}
+	}
+	
+	const scoreManager = {
+		get: function() {
+			return cookieManager.get('score').score;
+		},
+		set: function(n) {
+			cookieManager.set('score', {score: n});
+		}
+	}
+
+	const counterManager = {
+		counter: document.querySelector('.counter'),
+		set: function(n) {
+			this.counter.innerHTML = n;
+		}
+	}
+	
+	const gardenManager = {
+		garden: document.querySelector('.garden'),
+		flower: (() => {
+			const f = document.createElement('div');
+			f.classList.add('flower');
+			f.innerHTML = '★';
+			return () => f.cloneNode(true);
+		})(),
+		set: function(n) {
+			let tg = document.createElement('div');
+			for(let i = 0; i < n; i++) {
+				tg.appendChild(this.flower());
+			}
+			this.garden.innerHTML = tg.innerHTML;
+		}
+	}
+
+	const inputManager = {
+		subButton: document.querySelector('.sub-button'),
+		addButton: document.querySelector('.add-button'),
+		counterInput: document.querySelector('.counter-input'),
+		init: function() {
+			setTimeout(() => {
+				this.counterInput.value = scoreManager.get();
+				this.counterInput.onchange();
+			}, 0);
+			
+			this.subButton.onclick = (e) => {
+				this.counterInput.value--;
+				this.counterInput.onchange();
+			};
+			this.addButton.onclick = (e) => {
+				this.counterInput.value++;
+				this.counterInput.onchange();
+			};
+			this.counterInput.onchange = (e) => {
+				const val = this.counterInput.value
+				gardenManager.set(val);
+				counterManager.set(val);
+				scoreManager.set(val);
+			};
+			document.onkeypress = (e) => {
+				switch(e.keyCode) {
+					case 43:
+						this.addButton.onclick()
+						break;
+					case 45:
+						this.subButton.onclick()
+						break;
+					default:
+				}
+			}
+		}
+	}
+	
+	inputManager.init()
+</script>
